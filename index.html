@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow Chess: The Dark Forest</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/effects.css">
+</head>
+<body>
+  <div id="gameContainer">
+    <div id="ui">
+      <h1>Shadow Chess: The Dark Forest</h1>
+
+      <div id="menu">
+        <div class="menu-section">
+          <h2>New Game</h2>
+          <div class="setting">
+            <label>Board Size:</label>
+            <select id="boardSize">
+              <option value="16">16x16</option>
+              <option value="20">20x20</option>
+              <option value="24">24x24</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label>AI Difficulty:</label>
+            <select id="aiDifficulty">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <button id="startBtn">Start Game</button>
+        </div>
+
+        <div class="menu-section">
+          <h2>Controls</h2>
+          <ul>
+            <li><strong>Click</strong> - Select piece / Move</li>
+            <li><strong>G</strong> - Toggle Ghost movement</li>
+            <li><strong>Mouse hover</strong> - Highlight squares</li>
+          </ul>
+        </div>
+
+        <div class="menu-section">
+          <h2>Game Rules</h2>
+          <ul>
+            <li>Find and assassinate the enemy King</li>
+            <li>Kings are disguised as Pawns</li>
+            <li>Use echolocation pulses to locate enemies</li>
+            <li>One silent Ghost movement per game</li>
+            <li>Ambushes are possible - stay alert!</li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="message"></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <script src="js/core/Game.js"></script>
+  <script src="js/core/Board.js"></script>
+  <script src="js/core/Piece.js"></script>
+  <script src="js/core/GameState.js"></script>
+  <script src="js/mechanics/Visibility.js"></script>
+  <script src="js/mechanics/Echolocation.js"></script>
+  <script src="js/mechanics/Ghost.js"></script>
+  <script src="js/mechanics/Movement.js"></script>
+  <script src="js/rendering/Renderer.js"></script>
+  <script src="js/rendering/Effects.js"></script>
+  <script src="js/rendering/UI.js"></script>
+  <script src="js/audio/SoundEngine.js"></script>
+  <script src="js/audio/sound-data.js"></script>
+  <script src="js/ai/AIPlayer.js"></script>
+  <script src="js/ai/Minimax.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
