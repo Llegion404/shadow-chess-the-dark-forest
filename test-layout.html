@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #gameContainer {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #ui {
+      flex: 0 0 320px;
+      padding: 24px;
+      background: rgba(13, 17, 23, 0.98);
+      border-right: 2px solid #333;
+      overflow-y: auto;
+      min-width: 320px;
+    }
+
+    #ui h1 {
+      font-size: 22px;
+      color: #ffd700;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #canvas-wrapper {
+      flex: 1;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    canvas {
+      border: 1px solid #444;
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <div id="ui">
+      <h1>Shadow Chess</h1>
+      <p>Menu content here</p>
+      <p>Menu content here</p>
+      <p>Menu content here</p>
+      <p>Menu content here</p>
+      <p>Menu content here</p>
+    </div>
+    <div id="canvas-wrapper">
+      <canvas width="600" height="600"></canvas>
+    </div>
+  </div>
+</body>
+</html>

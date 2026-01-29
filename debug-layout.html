@@ -3,10 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shadow Chess: The Dark Forest</title>
+  <title>Debug Layout</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/board.css">
   <link rel="stylesheet" href="css/effects.css">
+  <style>
+    #ui {
+      background: #ff0000 !important;
+      border: 3px solid #00ff00 !important;
+    }
+    #canvasContainer {
+      background: #0000ff !important;
+      border: 3px solid #ffff00 !important;
+    }
+    body {
+      border: 5px solid #ff00ff !important;
+    }
+    #gameContainer {
+      border: 5px solid #00ffff !important;
+    }
+  </style>
 </head>
 <body>
   <div id="gameContainer">
@@ -35,23 +51,13 @@
           <button id="startBtn">Start Game</button>
         </div>
 
-        <div class="menu-section" id="gameActions" style="display: none;">
-          <h2>Actions</h2>
-          <button id="undoBtn" style="width: 100%; margin-bottom: 8px;">Undo Move (U)</button>
-          <button id="saveBtn" style="width: 100%; margin-bottom: 8px;">Save Game (S)</button>
-          <button id="loadBtn" style="width: 100%; margin-bottom: 8px;">Load Game</button>
-          <button id="restartBtn" style="width: 100%;">Restart Game</button>
-        </div>
-
         <div class="menu-section">
           <h2>Controls</h2>
           <ul>
             <li><strong>Click</strong> Select piece / Move</li>
             <li><strong>G</strong> Toggle Ghost movement</li>
             <li><strong>Space</strong> Echolocation pulse</li>
-            <li><strong>U</strong> Undo last move</li>
-            <li><strong>S</strong> Save game</li>
-            <li><strong>Escape</strong> Deselect piece</li>
+            <li><strong>Hover</strong> Highlight squares</li>
           </ul>
         </div>
 
@@ -77,17 +83,9 @@
           <label>Ghost Moves</label>
           <div id="ghostMovesIndicator" style="color: #ffd700; font-weight: 600;">1 remaining</div>
         </div>
-        <div class="setting">
-          <label>Ghost Status</label>
-          <div id="ghostStatusIndicator" style="color: #8b949e; font-weight: 600;">Inactive</div>
-        </div>
       </div>
 
       <div id="message"></div>
-      <div id="aiThinkingIndicator" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center;">
-        <div class="ai-thinking-spinner"></div>
-        <div class="ai-thinking-text">AI is thinking...</div>
-      </div>
     </div>
 
     <div id="canvasContainer">
@@ -95,22 +93,27 @@
     </div>
   </div>
 
-  <script src="js/core/Game.js"></script>
-  <script src="js/core/Board.js"></script>
-  <script src="js/core/Piece.js"></script>
-  <script src="js/core/GameState.js"></script>
-  <script src="js/core/SaveManager.js"></script>
-  <script src="js/mechanics/Visibility.js"></script>
-  <script src="js/mechanics/Echolocation.js"></script>
-  <script src="js/mechanics/Ghost.js"></script>
-  <script src="js/mechanics/Movement.js"></script>
-  <script src="js/rendering/Renderer.js"></script>
-  <script src="js/rendering/Effects.js"></script>
-  <script src="js/rendering/UI.js"></script>
-  <script src="js/audio/SoundEngine.js"></script>
-  <script src="js/audio/sound-data.js"></script>
-  <script src="js/ai/AIPlayer.js"></script>
-  <script src="js/ai/Minimax.js"></script>
-  <script src="js/main.js"></script>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvasContainer');
+    
+    function resize() {
+      const maxWidth = container.clientWidth;
+      const maxHeight = container.clientHeight;
+      canvas.width = maxWidth;
+      canvas.height = maxHeight;
+      ctx.fillStyle = '#0d1117';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Canvas Area', canvas.width / 2, canvas.height / 2);
+    }
+    
+    resize();
+    window.addEventListener('resize', resize);
+  </script>
 </body>
 </html>
