@@ -2,8 +2,10 @@ class Game {
   constructor() {
     this.canvas = document.getElementById('gameCanvas');
     this.ctx = this.canvas.getContext('2d');
+    this.container3D = document.getElementById('canvasContainer');
     this.state = null;
     this.renderer = null;
+    this.renderer3D = null;
     this.soundEngine = null;
     this.ai = null;
     this.isMultiplayer = false;
@@ -12,32 +14,9 @@ class Game {
     this.ghostSystem = null;
     this.saveManager = new SaveManager();
     this.currentOptions = {};
-
-    setTimeout(() => this.resizeCanvas(), 100);
-    window.addEventListener('resize', () => this.resizeCanvas());
+    this.use3D = true;
 
     this.setupInputHandlers();
-  }
-
-  resizeCanvas() {
-    const container = document.getElementById('canvasContainer');
-    if (!container) return;
-
-    const maxWidth = container.clientWidth || 800;
-    const maxHeight = container.clientHeight || 600;
-
-    const cellSize = this.renderer ? this.renderer.cellSize : 40;
-    const boardWidth = this.state ? this.state.board.width * cellSize : 640;
-    const boardHeight = this.state ? this.state.board.height * cellSize : 640;
-
-    const scale = Math.min(maxWidth / boardWidth, maxHeight / boardHeight, 1);
-
-    this.canvas.width = Math.floor(boardWidth * scale);
-    this.canvas.height = Math.floor(boardHeight * scale);
-
-    if (this.renderer && this.state) {
-      this.renderer.calculateDimensions(this.state);
-    }
   }
 
   initGame(options = {}) {
@@ -55,10 +34,23 @@ class Game {
     this.echolocationSystem = new EcholocationSystem(this.state);
     this.ghostSystem = new GhostSystem(this.state);
 
-    this.renderer = new Renderer(this.canvas, this.ctx);
+    if (!isMultiplayer) {
+      this.ai = new AIPlayer(1, aiDifficulty);
+      this.ai.setGhostSystem(this.ghostSystem);
+    }
+
     this.soundEngine = new SoundEngine();
 
-    this.renderer.init(this.state);
+    if (this.use3D) {
+      if (this.canvas) this.canvas.style.display = 'none';
+      this.renderer3D = new Renderer3D(this.container3D);
+      this.renderer3D.soundEngine = this.soundEngine;
+      this.renderer3D.init(this.state);
+    } else {
+      this.renderer = new Renderer(this.canvas, this.ctx);
+      this.renderer.init(this.state);
+    }
+
     this.updateVisibility();
     this.updateGameInfo();
 
@@ -74,7 +66,6 @@ class Game {
     document.getElementById('saveBtn')?.addEventListener('click', () => this.saveGame());
     document.getElementById('loadBtn')?.addEventListener('click', () => this.loadGame());
     document.getElementById('restartBtn')?.addEventListener('click', () => this.showRestartConfirmation());
-  }
 
     this.soundEngine.startAmbient();
     this.startGameLoop();
@@ -143,8 +134,9 @@ class Game {
   }
 
   setupInputHandlers() {
-    this.canvas.addEventListener('click', (e) => this.handleClick(e));
-    this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+    const clickTarget = this.use3D ? this.container3D : this.canvas;
+    clickTarget.addEventListener('click', (e) => this.handleClick(e));
+    clickTarget.addEventListener('mousemove', (e) => this.handleMouseMove(e));
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'g' || e.key === 'G') {
@@ -157,12 +149,12 @@ class Game {
       } else if (e.key === 's' || e.key === 'S') {
         this.saveGame();
       } else if (e.key === 'Escape') {
-        this.state.selectedPiece = null;
-        this.state.validMoves = [];
         if (this.state.selectedPiece && this.state.selectedPiece.isGhostActive) {
           this.state.selectedPiece.deactivateGhost();
           this.updateGameInfo();
         }
+        this.state.selectedPiece = null;
+        this.state.validMoves = [];
       }
     });
   }
@@ -173,30 +165,28 @@ class Game {
     if (!this.state || this.state.gameOver) return;
     if (this.state.currentTurn !== 0) return;
 
-    const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const boardPos = this.screenToBoard({ x, y });
+    const boardPos = this.screenToBoard({ x: e.clientX, y: e.clientY });
     if (!boardPos) return;
 
     this.handleBoardClick(boardPos);
   }
 
   handleMouseMove(e) {
-    if (!this.renderer) return;
-
-    const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const boardPos = this.screenToBoard({ x, y });
+    const boardPos = this.screenToBoard({ x: e.clientX, y: e.clientY });
     if (boardPos) {
-      this.renderer.highlightSquare(boardPos);
+      if (this.use3D && this.renderer3D) {
+        this.renderer3D.highlightSquare(boardPos);
+      } else if (this.renderer) {
+        this.renderer.highlightSquare(boardPos);
+      }
     }
   }
 
   screenToBoard(screenPos) {
+    if (this.use3D && this.renderer3D) {
+      return this.renderer3D.getCellAtMouse(screenPos.x, screenPos.y);
+    }
+    
     if (!this.renderer) return null;
 
     const cellSize = this.renderer.getCellSize();
@@ -212,6 +202,10 @@ class Game {
   }
 
   boardToScreen(boardPos) {
+    if (this.use3D && this.renderer3D) {
+      return this.renderer3D.boardToWorld(boardPos.x, boardPos.y);
+    }
+    
     if (!this.renderer) return null;
 
     const cellSize = this.renderer.getCellSize();
@@ -270,12 +264,15 @@ class Game {
 
       if (capturedPiece.isKing()) {
         this.soundEngine.playKingCaptureSound();
+        this.addEffect(target.x, target.y, 'explosion', '#ffd700');
         this.endGame(piece.owner);
         return;
       } else if (capturedPiece.isDecoy()) {
+        this.addEffect(target.x, target.y, 'sparkles', '#ff9632');
         this.showMessage('Decoy captured!');
         this.soundEngine.playCaptureSound();
       } else {
+        this.addEffect(target.x, target.y, 'explosion', '#ff6b6b');
         this.soundEngine.playCaptureSound();
       }
     }
@@ -287,12 +284,32 @@ class Game {
       piece.deactivateGhost();
       this.state.players[piece.owner].ghostUsed = true;
       this.updateGameInfo();
+      this.addEffect(target.x, target.y, 'sparkles', '#8b5cf6');
     } else {
       this.echolocationSystem.emitPulse(piece);
     }
 
     this.updateVisibility();
     this.endTurn();
+  }
+
+  addEffect(x, y, type, color) {
+    if (this.use3D && this.renderer3D) {
+      if (type === 'explosion') {
+        this.renderer3D.addExplosion(x, y, color);
+      } else {
+        this.renderer3D.addSparkles(x, y, color);
+      }
+    } else if (this.renderer) {
+      const screenPos = this.boardToScreen({ x, y });
+      const cx = screenPos.x + this.renderer.cellSize / 2;
+      const cy = screenPos.y + this.renderer.cellSize / 2;
+      if (type === 'explosion') {
+        this.renderer.particleSystem.addExplosion(cx, cy, color);
+      } else {
+        this.renderer.particleSystem.addSparkles(cx, cy, color);
+      }
+    }
   }
 
   undoMove() {
@@ -548,10 +565,19 @@ class Game {
     if (!this.state) return;
 
     this.echolocationSystem.update(16);
-    this.renderer.update(this.state);
+    if (this.use3D && this.renderer3D) {
+      this.renderer3D.update(this.state);
+    } else if (this.renderer) {
+      this.renderer.update(this.state);
+    }
   }
 
   render() {
+    if (this.use3D && this.renderer3D) {
+      this.renderer3D.render();
+      return;
+    }
+
     if (!this.renderer) return;
 
     if (!this.state) {
